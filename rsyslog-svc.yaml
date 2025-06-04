@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rsyslog-service
+  namespace: log 
+spec:
+  type: LoadBalancer
+  externalIPs:
+    - 192.168.1.70
+  selector:
+    app: rsyslog
+  ports:
+    - port: 514
+      targetPort: 514
