@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rsyslog-config
+  namespace: log
+data:
+  rsyslog.conf: |
+    module(load="imudp")
+    input(type="imudp" port="514")
+
+    # 保存先ファイル
+    *.* /var/log/arista.log
