@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-pipeline
+  namespace: log
+data:
+  logstash.conf: |
+    input {
+      http {
+        port => 8080
+        codec => json
+      }
+    }
+    output {
+      file {
+        path => "/usr/share/logstash/logs/logstash.log"
+        codec => json_lines
+      }
+    }
