@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rsyslog
+  namespace: log
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rsyslog
+  template:
+    metadata:
+      labels:
+        app: rsyslog
+    spec:
+      hostNetwork: false 
+      containers:
+      - name: rsyslog
+        image: ubuntu:22.04
+        command:
+          - /bin/bash
+          - -c
+          - |
+            apt update && \
+            apt -o Dpkg::Options::="--force-confold" install -y rsyslog && \
+            apt install net-tools -y && \
+            apt install tcpdump -y && \
+            touch /var/log/arista.log && chmod 666 /var/log/arista.log && \
+            rsyslogd -n -f /etc/rsyslog.conf
+        ports:
+        - containerPort: 514
+          protocol: UDP
+        volumeMounts:
+        - name: config
+          mountPath: /etc/rsyslog.conf
+          subPath: rsyslog.conf
+      volumes:
+      - name: config
+        configMap:
+          name: rsyslog-config
