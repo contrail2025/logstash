@@ -1,0 +1,14 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: kibana-devops
+  namespace: devops
+spec:
+  version: 8.13.4
+  count: 1
+  elasticsearchRef:
+    name: es-devops
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true  # Kibana側もTLS無効
