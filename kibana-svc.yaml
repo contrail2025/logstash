@@ -1,0 +1,15 @@
+# kibana-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana-devops-lb
+  namespace: devops
+spec:
+  type: LoadBalancer
+  selector:
+    kibana.k8s.elastic.co/name: kibana-devops
+  ports:
+    - name: http
+      port: 5601
+      targetPort: 5601
+      protocol: TCP
