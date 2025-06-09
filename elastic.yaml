@@ -1,0 +1,25 @@
+# kubectl create -f https://download.elastic.co/downloads/eck/2.11.1/crds.yaml
+# kubectl apply -f https://download.elastic.co/downloads/eck/2.11.1/operator.yaml
+# kubectl get secret es-devops-es-elastic-user -n devops -o go-template='{{.data.elastic | base64decode}}'
+#
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: es-devops
+  namespace: devops
+spec:
+  version: 8.13.4
+  nodeSets:
+  - name: default
+    count: 1
+    config:
+      node.store.allow_mmap: false
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: managed-premium  # AKS推奨ストレージクラス名
