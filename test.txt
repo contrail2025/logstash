@@ -1,0 +1,7 @@
+cp ./SNMPv2-MIB.yaml /etc/logstash/mibs_yaml/base/
+cp ./IF-MIB.yaml     /etc/logstash/mibs_yaml/base/
+cp ./*.yaml          /etc/logstash/mibs_yaml/extra/
+
+snmptrap {
+  mib_paths => ["/etc/logstash/mibs_yaml/base", "/etc/logstash/mibs_yaml/extra"]
+}
