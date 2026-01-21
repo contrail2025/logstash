@@ -1,7 +1,77 @@
-cp ./SNMPv2-MIB.yaml /etc/logstash/mibs_yaml/base/
-cp ./IF-MIB.yaml     /etc/logstash/mibs_yaml/base/
-cp ./*.yaml          /etc/logstash/mibs_yaml/extra/
+■dockerを使ってnetboxをVerupしてDBも一緒にupgradeされていく事に期待
+mkdir netbox-verup
+cd netbox-verup
+docker-compose.yamlを作成
 
-snmptrap {
-  mib_paths => ["/etc/logstash/mibs_yaml/base", "/etc/logstash/mibs_yaml/extra"]
-}
+■初回起動
+docker compose up -d
+docker compose logs -f netbox
+
+■データリストア
+cd ~/netbox
+docker compose down
+docker exec -it netbox-postgres psql -U netbox -d postgres -c "
+DROP DATABASE netbox;
+CREATE DATABASE netbox OWNER netbox;
+
+■AKSから取得した最新データをインポート
+docker exec -i netbox-postgres psql -U netbox netbox < netbox_v3.2.7_20260101.sql
+
+■docker-compose.yamlのイメージを変更して実施
+docker compose down
+docker compose up -d
+
+■起動確認(dbの読み込みに時間がかかる)
+docker compose logs -f netbox
+
+■imageを以下に変えて実行してく
+image: netboxcommunity/netbox:v3.5.9 / postgress 13
+image: netboxcommunity/netbox:v3.7.8 / postgress 13
+image: netboxcommunity/netbox:v4.0.11 / postgress 15
+image: netboxcommunity/netbox:v4.5.1 / postgress 15
+
+■netbox ver4.5.1でデータバックアップ
+docker exec -t netbox-postgres pg_dump -U netbox netbox > netbox_v4.5.1_20260101.sql
+
+■このデータをAKS netbox-newにインポートする
+■データ初期化(バックアップ取得後に)
+cd ~/netbox
+docker compose down
+docker exec -it netbox-postgres psql -U netbox -d postgres -c "
+DROP DATABASE netbox;
+CREATE DATABASE netbox OWNER netbox;
+
+■AKSにデータインポート
+docker exec -i netbox-postgres psql -U netbox netbox < netbox_v4.5.1_20260101.sql
+
+dockerのdbをk8sにインポートする条件
+① NetBox バージョン
+Docker 側：NetBox 4.5.1
+k8s 側：NetBox 4.5.1
+👉 完全一致が原則（4.5.x 同士なら可）
+
+② PostgreSQL メジャーバージョン
+Docker 側：PostgreSQL 14 or 15
+
+❌ PostgreSQL 13 のデータディレクトリを
+❌ PostgreSQL 15 でそのまま使おうとしている
+
+13 -> 15にverupする時
+docker volume rm netbox_postgres_data
+docker volume ls
+docker compose up -d postgres
+docker compose ps
+docker compose logs postgres
+2026-01-21 11:25:02.718 UTC [1] LOG:  database system is ready to accept connections
+
+docker exec -it netbox-postgres psql -U netbox -d postgres -c "DROP DATABASE netbox;"
+docker exec -it netbox-postgres psql -U netbox -d postgres -c "CREATE DATABASE netbox OWNER netbox;"
+docker exec -i netbox-postgres psql -U netbox netbox < netbox_full_327.sql
+
+docker compose up -d netbox
+docker compose logs -f netbox
+
+
+
+
+docker network prune -f
