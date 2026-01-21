@@ -80,3 +80,5 @@ PY
 
 
 docker network prune -f
+
+To fix them run 'python manage.py makemigrations --merge'
