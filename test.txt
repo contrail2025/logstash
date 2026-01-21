@@ -71,6 +71,11 @@ docker exec -i netbox-postgres psql -U netbox netbox < netbox_full_327.sql
 docker compose up -d netbox
 docker compose logs -f netbox
 
+python3 - <<'PY'
+import secrets
+print(secrets.token_urlsafe(50))
+PY
+
 
 
 
